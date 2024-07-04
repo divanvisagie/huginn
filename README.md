@@ -35,13 +35,13 @@ The id is treated as a string in order to allow for the client to handle the mes
 
 The messages are sent as messagepack messages in the following format:
 
-```go
-type Message struct {
-    ID       string   `msgpack:"id"`
-    Message  string   `msgpack:"message"`
-    Models   []string `msgpack:"models"`
-    Strategy string   `msgpack:"strategy"`
-}
+```c
+typedef struct {
+    char id[50];
+    char message[200];
+    char models[5][50];
+    char strategy[50];
+} Message;
 ```
 
 The MQTT Instance should have 3 topics:
