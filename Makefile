@@ -6,15 +6,16 @@ BIN_DIR = bin
 SRC_DIR = src
 RELEASE_DIR = ./release
 
+
 # Common flags
-CFLAGS = -I$(SRC_DIR) -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/cmocka
-LDFLAGS = -lglib-2.0 -lcmocka
+CFLAGS = -I$(SRC_DIR) -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/cmocka -I/usr/include/mosquitto
+LDFLAGS = -lglib-2.0 -lcmocka -lmosquitto
 
 # Platform-specific flags
 PLATFORM = $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ifeq ($(PLATFORM),darwin)
-    CFLAGS += -I/opt/homebrew/include/glib-2.0 -I/opt/homebrew/lib/glib-2.0/include -I/opt/homebrew/include -I/opt/homebrew/include/cmocka
-    LDFLAGS += -L/opt/homebrew/lib
+    CFLAGS += -I/opt/homebrew/include/glib-2.0 -I/opt/homebrew/lib/glib-2.0/include -I/opt/homebrew/include -I/opt/homebrew/include/cmocka -I/opt/homebrew/include/mosquitto
+    LDFLAGS += -L/opt/homebrew/lib -lmosquitto
 endif
 
 # Define platform and architecture

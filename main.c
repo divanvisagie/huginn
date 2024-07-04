@@ -30,12 +30,6 @@ void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_messag
 }
 
 int main(int argc, char* argv[]) {
-	// Check if MAC address is provided
-	if (argc < 2) {
-		fprintf(stderr, "Usage: %s <MAC address>\n", argv[0]);
-		return EXIT_FAILURE;
-	}
-
 	struct mosquitto *mosq;
 	mosquitto_lib_init();
 
