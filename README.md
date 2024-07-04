@@ -1,4 +1,5 @@
 # huginn
+
 A system service for language model management.
 
 The goal of Huginn, is to be able to provide seemless language model interaction in a service that does not require the opening of another port on the machine, as well as the ability to select a more powerful machine to run a local model on or reach out to cloud models based on different strategies.
@@ -24,10 +25,10 @@ sequenceDiagram
     d->>+l: Send request to Ollama
     l-->>-d: Response
     d->>-m: Output topic
-
 ```
 
 ## How
+
 Huginn receives messages on an MQTT topic, processes them, and publishes the results to another MQTT topic.
 It takes in a message and a message id and returns a message and a message id.
 
@@ -46,11 +47,11 @@ typedef struct {
 
 The MQTT Instance should have 3 topics:
 
-| Topic                     | Description                                                                     |
-|---------------------------|---------------------------------------------------------------------------------|
-| Input Topic               | The topic that Huginn will subscribe to for incoming messages                   |
-| Output Topic              | The topic that Huginn will publish the results to and clients expect results on |
-| External Processing Topic | The topic that Huginn will publish messages to for external processing          |
+| Name         | Topic                     | Description                                                                     |
+| ------------ | ------------------------- | ------------------------------------------------------------------------------- |
+| huginn/in    | Input Topic               | The topic that Huginn will subscribe to for incoming messages                   |
+| huginn/out   | Output Topic              | The topic that Huginn will publish the results to and clients expect results on |
+| huginn/defer | External Processing Topic | The topic that Huginn will publish messages to for external processing          |
 
 Since clients expect to read messages from the output topic, it does not matter whether the messages on there were posted by the
 local Huginn instance or an external one.
