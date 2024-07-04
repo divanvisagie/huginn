@@ -15,14 +15,14 @@ sequenceDiagram
     participant d as Huginn (desktop)
     participant l as LLM
     h->>m: Subscribe to topic input topic
-    m->>h: Message Comes in
+    m->>+h: Message Comes in
     h->>d: Send wakeonlan packet
-    h->>m: Send message to external processing topic
+    h->>-m: Send message to external processing topic
     d->>d: Boots up with huginn in external processing mode
     d->>m: Subscribe to external processing topic
     m->>+d: Message comes in
     d->>+l: Send request to Ollama
-    l-->>d: Response
+    l-->>-d: Response
     d->>-m: Output topic
 
 ```
