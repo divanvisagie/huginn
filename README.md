@@ -28,10 +28,10 @@ sequenceDiagram
 ```
 
 ## How
-Huginn receives messages on an MQTT topic, processes them with a language model, and publishes the results to another MQTT topic.
-It takes in a message and a message id and returns a message and a message id. The client will handle this accordingly.
+Huginn receives messages on an MQTT topic, processes them, and publishes the results to another MQTT topic.
+It takes in a message and a message id and returns a message and a message id.
 
-The id is treated as a string in order to allow for the client to handle the message id as it sees fit, whether through compounding or other methods.
+The id is treated as a string in order to allow for the client to handle the message id as it sees fit, whether through compound keys or other methods.
 
 The messages are sent as messagepack messages in the following format:
 
@@ -44,3 +44,13 @@ type Message struct {
 }
 ```
 
+The MQTT Instance should have 3 topics:
+
+| Topic                     | Description                                                                     |
+|---------------------------|---------------------------------------------------------------------------------|
+| Input Topic               | The topic that Huginn will subscribe to for incoming messages                   |
+| Output Topic              | The topic that Huginn will publish the results to and clients expect results on |
+| External Processing Topic | The topic that Huginn will publish messages to for external processing          |
+
+Since clients expect to read messages from the output topic, it does not matter whether the messages on there were posted by the
+local Huginn instance or an external one.
