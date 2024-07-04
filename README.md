@@ -36,13 +36,14 @@ The id is treated as a string in order to allow for the client to handle the mes
 
 The messages are sent as messagepack messages in the following format:
 
-```c
-typedef struct {
-    char id[50];
-    char message[200];
-    char models[5][50];
-    char strategy[50];
-} Message;
+```rust
+struct Message {
+    id: String,
+    timestamp: u64,
+    message: String,
+    models: Vec<String>,
+    strategy: String,
+}
 ```
 
 The MQTT Instance should have 3 topics:

@@ -12,6 +12,7 @@ const DEFER_TOPIC: &str = "huginn/defer";
 #[derive(Serialize, Deserialize, Debug)]
 struct Message {
     id: String,
+    timestamp: u64,
     message: String,
     models: Vec<String>,
     strategy: String,
