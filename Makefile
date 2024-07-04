@@ -1,65 +1,71 @@
-# Define directories
-CMD_DIR := cmd/huginn
-INTERNAL_DIRS := internal/wakeonlan 
-# PKG_DIRS := pkg/parser pkg/storage
-DOCS_DIR := docs
+.PHONY: main clean
 
-# Define the output binary name
-BINARY_NAME := huginn
+BIN_NAME = huginn
+CC = gcc
+BIN_DIR = bin
+SRC_DIR = src
+RELEASE_DIR = ./release
 
-# Go command
-GO := go
+# Common flags
+CFLAGS = -I$(SRC_DIR) -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/cmocka
+LDFLAGS = -lglib-2.0 -lcmocka
 
-# Default target
-.PHONY: all
-all: build
+# Platform-specific flags
+PLATFORM = $(shell uname -s | tr '[:upper:]' '[:lower:]')
+ifeq ($(PLATFORM),darwin)
+    CFLAGS += -I/opt/homebrew/include/glib-2.0 -I/opt/homebrew/lib/glib-2.0/include -I/opt/homebrew/include -I/opt/homebrew/include/cmocka
+    LDFLAGS += -L/opt/homebrew/lib
+endif
 
-# Build target to compile the application
+# Define platform and architecture
+ARCH ?= $(shell uname -m | tr '[:upper:]' '[:lower:]')
+
+# Find all C source files in the source directory
+SOURCES := $(wildcard $(SRC_DIR)/*.c)
+# Exclude certain source files
+EXCLUDES := $(SRC_DIR)/main.c
+SOURCES := $(filter-out $(EXCLUDES), $(SOURCES))
+
+# Make sure the bin directory exists before compiling anything
+$(shell mkdir -p $(BIN_DIR))
+
+main:
+	$(CC) $(CFLAGS) main.c $(SOURCES) -o $(BIN_DIR)/$(BIN_NAME) -g $(LDFLAGS)
+
 build:
-	$(GO) build -o bin ./$(CMD_DIR) 
+	$(CC) $(CFLAGS) main.c $(SOURCES) -o $(BIN_DIR)/$(BIN_NAME) $(LDFLAGS)
 
-# Test target to run all tests
-.PHONY: test
+run: main
+	./$(BIN_DIR)/$(BIN_NAME)
+
 test:
-	$(GO) test ./...
+	$(CC) $(CFLAGS) test.c $(SOURCES) -o $(BIN_DIR)/$@ -g $(LDFLAGS)
+	./$(BIN_DIR)/$@
 
-# Format the code
-.PHONY: fmt
-fmt:
-	$(GO) fmt ./...
-
-# Update dependencies
-.PHONY: deps
-deps:
-	$(GO) mod tidy
-
-# Clean up compiled binary and other generated files
-.PHONY: clean
 clean:
-	rm -f $(BINARY_NAME)
-	$(GO) clean -cache
+	rm -f bin/$(BIN_NAME)
+	rm -f bin/test
 
-# Run the application
-.PHONY: run
-run:
-	$(GO) run $(CMD_DIR)
+deb: build
+	@sh ./scripts/build_deb.sh
 
-# Generate and view documentation
-.PHONY: docs
-docs:
-	@echo "Generate and open docs in a preferred documentation generator/viewer"
+deb-publish:
+	@sh ./scripts/build_deb.sh "publish"
 
-# Help target to display available targets
-.PHONY: help
-help:
-	@echo "Usage: make [target]"
-	@echo "Targets:"
-	@echo "  all      - Build the application"
-	@echo "  build    - Compile the application"
-	@echo "  test     - Run all tests"
-	@echo "  fmt      - Format the code"
-	@echo "  deps     - Update dependencies"
-	@echo "  clean    - Clean up compiled binary and generated files"
-	@echo "  run      - Run the application"
-	@echo "  docs     - Generate and view documentation"
-	@echo "  help     - Display this help message"
+tarball: build
+	@echo "Packaging the release..."
+	@mkdir -p $(RELEASE_DIR);
+	@cp docs/$(BIN_NAME).1 bin/;
+	@tar -czf $(RELEASE_DIR)/$(BIN_NAME)-$(PLATFORM)-$(ARCH).tar.gz -C bin/ $(BIN_NAME) $(BIN_NAME).1;
+
+tarball-publish: tarball
+	@TARBALL=$(BIN_NAME)-$(PLATFORM)-$(ARCH).tar.gz; \
+	echo "Sending tarball $$TARBALL to script"; \
+	sh ./scripts/publish_asset.sh $$TARBALL
+
+homebrew:
+	@sh ./scripts/homebrew.sh
+
+scan:
+	# valgrind --leak-check=yes --track-origins=yes ./bin/test
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/test
