@@ -21,3 +21,8 @@
 go.work
 go.work.sum
 bin
+
+
+# Added by cargo
+
+/target
