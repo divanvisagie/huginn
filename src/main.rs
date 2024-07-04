@@ -1,3 +1,5 @@
+use std::ffi::{c_char, CStr};
+
 use rumqttc::{AsyncClient, Event, MqttOptions, QoS};
 use serde::{Deserialize, Serialize};
 use tokio::time::Duration;
@@ -8,7 +10,7 @@ mod clients;
 const IN_TOPIC: &str = "huginn/in";
 const OUT_TOPIC: &str = "huginn/out";
 const DEFER_TOPIC: &str = "huginn/defer";
-
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 #[derive(Serialize, Deserialize, Debug)]
 struct Message {
     id: String,
@@ -50,6 +52,10 @@ async fn handle_message(payload: &str, client: &AsyncClient) {
             );
             match Strategy::from_str(&message.strategy) {
                 Strategy::External => {
+
+                    let mac = std::env::var("HUGINN_REMOTE_MAC").unwrap();
+                    wake_on_lan(mac.as_str());
+
                     client
                         .publish(DEFER_TOPIC, QoS::AtMostOnce, false, payload)
                         .await
@@ -69,8 +75,23 @@ async fn handle_message(payload: &str, client: &AsyncClient) {
     }
 }
 
+fn wake_on_lan(mac: &str) {
+    unsafe {
+        let mac_c = std::ffi::CString::new(mac).unwrap();
+        send_wake_on_lan(mac_c.as_ptr());
+    }
+}
+
 #[tokio::main]
 async fn main() {
+
+
+    unsafe {
+        let btr: *const c_char = bridge_test();
+        let greeting = CStr::from_ptr(btr).to_str().unwrap();
+        println!("C says: {}", greeting);
+    }
+
     let mut mqtt_options = MqttOptions::new("huginn", "localhost", 1883);
     mqtt_options.set_keep_alive(Duration::from_secs(5));
 
